@@ -81,7 +81,7 @@ npx hardhat compile
 
 ```
 
-npx hardhat deploy --network \<network name> --tags hardhat\_\<network>_deploy
+npx hardhat deploy --network <network name> --tags hardhat_<network>_deploy
 
 ```
 
