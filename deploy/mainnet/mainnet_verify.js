@@ -26,4 +26,4 @@ module.exports = async () => {
   });
 };
 
-module.exports.tags = ["mainnet_xDVG_verify"];
+module.exports.tags = ["mainnet_verify"];

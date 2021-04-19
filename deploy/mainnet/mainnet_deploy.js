@@ -26,4 +26,4 @@ module.exports = async ({ deployments }) => {
   });
   console.log("DVGUniBot address: ", DVGUniBot.address);
 };
-module.exports.tags = ["hardhat_xDVG_deploy"]
+module.exports.tags = ["mainnet_deploy"]
