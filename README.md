@@ -24,7 +24,7 @@ When you stake your DVG tokens, you “purchase” a share of the xDVG pool. Bec
 
 ### xDVG (VIP DVG)
 
-##### function `deposit(uint256 _amount)`
+#### function `deposit(uint256 _amount)`
 
 Pay some DVGs. Earn some shares. Locks DVG and mints xDVG.
 
