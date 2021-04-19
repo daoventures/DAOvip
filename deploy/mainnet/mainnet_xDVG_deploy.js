@@ -13,6 +13,7 @@ module.exports = async ({ deployments }) => {
     from: deployer.address,
     args: [dvgAddress],
   });
+  console.log("xDVG address: ", xDVG.address);
 
   const DVGUniBot = await deploy("DVGUniBot", {
     from: deployer.address,
@@ -23,6 +24,6 @@ module.exports = async ({ deployments }) => {
       walletAddress,
     ],
   });
-
+  console.log("DVGUniBot address: ", DVGUniBot.address);
 };
-module.exports.tags = ["hardhat_xDVG"]
+module.exports.tags = ["hardhat_xDVG_deploy"]

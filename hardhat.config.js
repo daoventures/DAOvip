@@ -1,5 +1,3 @@
-const { solidity } = require("ethereum-waffle");
-
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-web3");
@@ -20,7 +18,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.ALCHEMY_URL_MAINNET,
+        url: process.env.MAINNET_URL,
         blockNumber: 12170855 
       },
       gas: 9500000,  //default:9500000
@@ -29,23 +27,25 @@ module.exports = {
         count: 1000  //default:20
       }
     },
-    /** 
+    /* 
     kovan: {
       url: process.env.KOVAN_URL,
-      from: process.env.KOVAN_ACCOUNT,
-      accounts: {
-        mnemonic: process.env.KOVAN_ACCOUNT_MNEMONIC
-      }
+      from: process.env.ACCOUNT,
+      accounts: [`0x${process.env.PRIVATE_KEY}`]
     },
 
     mainnet: {
       url: process.env.MAINNET_URL,
-      from: process.env.MAINNET_ACCOUNT,
-      accounts: {
-        mnemonic: process.env.MAINNET_ACCOUNT_MNEMONIC
-      }
+      from: process.env.ACCOUNT,
+      accounts: [`0x${process.env.PRIVATE_KEY}`]
     }*/
   },
+
+  /*
+  etherscan: {
+    apikey: process.env.ETHERSCAN_API_KEY
+  },
+  */
 
   solidity: {
     optimizer: {

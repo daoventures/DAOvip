@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-// This contract handles swapping to and from xDVG, DAOventures's staking token
+// This contract handles swapping to and from xDVG, DAOventures's vip token
 contract xDVG is ERC20("VIP DVG", "xDVG") {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
