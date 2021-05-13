@@ -30,7 +30,7 @@ contract xDVG is ERC20("VIP DVG", "xDVG") {
         uint256 totalShares = totalSupply();
         uint256 what;
         // If no xDVG exists, mint it 1:1 to the amount put in
-        if (totalShares == 0 || totalDVG == 0) {
+        if (totalShares == 0) {
             what = _amount;
             _mint(msg.sender, _amount);
         } 
