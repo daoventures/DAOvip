@@ -95,7 +95,10 @@ contract DVGUniBot is Ownable, ReentrancyGuard {
     function setToken(IERC20 _token, bool _allowed, uint256 _decimals) external onlyOwner {
         require(address(_token).isContract(), "Token address should be the smart contract address");
         token[_token] = Token(_allowed, _decimals);
-        _token.safeApprove(address(router), type(uint256).max);
+        
+        if (_token.allowance(address(this), address(router)) == 0) {
+            _token.safeApprove(address(router), type(uint256).max);
+        }
 
         emit SetToken(msg.sender, _token, _allowed, _decimals);
     }

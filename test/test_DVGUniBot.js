@@ -48,12 +48,24 @@ contract("DVGUniBot", async () => {
         assert.equal((await dvgUniBot.token(usdt.address))["allowed"], true);
         assert.equal((await dvgUniBot.token(usdt.address))["decimals"], 1e6);
 
+        tx = await dvgUniBot.connect(deployer).setAmount(1, 1);
+
         tx = await dvgUniBot.connect(user).buyDVG(usdt.address);
         const amount = await dvgUniBot.amount();
         assert.equal(await usdt.balanceOf(walletAddress), walletUSDTBalance - amount * 1e6);
         assert.notEqual(await dvg.balanceOf(xdvg.address), 0); 
         console.log("DVG balance of xDVG smart contract after bought:", (parseInt(await dvg.balanceOf(xdvg.address)) / parseInt(ethers.utils.parseEther("1"))));
         console.log("DVG price in USD:", amount / (parseInt(await dvg.balanceOf(xdvg.address)) / parseInt(ethers.utils.parseEther("1"))));
+    });
+
+    it ("Should succeed to change the token information", async () => {
+        await dvgUniBot.connect(deployer).setToken(usdt.address, true, 1e6);
+        assert.equal((await dvgUniBot.token(usdt.address))["allowed"], true);
+        assert.equal((await dvgUniBot.token(usdt.address))["decimals"], 1e6);
+
+        await dvgUniBot.connect(deployer).setToken(usdt.address, false, 0);
+        assert.equal((await dvgUniBot.token(usdt.address))["allowed"], false);
+        assert.equal((await dvgUniBot.token(usdt.address))["decimals"], 0);
     });
 
 });
