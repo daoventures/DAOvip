@@ -18,7 +18,7 @@ contract xDVG is ERC20("VIP DVG", "xDVG") {
     event Withdraw(address indexed user, uint256 dvgAmount, uint256 xDVGAmount);
 
     // Define the DVG token contract
-    constructor(IERC20 _dvg) public {
+    constructor (IERC20 _dvg) {
         dvg = _dvg;
     }
 

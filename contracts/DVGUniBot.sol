@@ -40,12 +40,12 @@ contract DVGUniBot is Ownable, ReentrancyGuard {
         _;
     }
 
-    constructor(
+    constructor (
         IERC20 _dvg, 
         IERC20 _xdvg, 
         IUniswapV2Router02 _router, 
         address _wallet
-    ) public {        
+    ) {        
         dvg = _dvg;
         xdvg = _xdvg;
         router = _router;
