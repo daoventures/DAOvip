@@ -3,13 +3,13 @@
 pragma solidity 0.7.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
-// This contract handles swapping to and from xDVG, DAOventures's vip token
-contract xDVD is ERC20("VIP DVD", "xDVD"), Initializable{
+
+// This contract handles swapping to and from xDVD, DAOventures's vip token
+contract xDVD is ERC20Upgradeable{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -20,16 +20,22 @@ contract xDVD is ERC20("VIP DVD", "xDVD"), Initializable{
 
     IERC20 public dvd;
 
-    uint[] tierAmount = [1000 * 1e18, 10_000 * 1e18, 50_000* 1e18, 100_000 * 1e18];
+    uint[] tierAmount;
     mapping(address => User) user;
 
     event Deposit(address indexed user, uint256 dvdAmount, uint256 xDVDAmount);
     event Withdraw(address indexed user, uint256 dvdAmount, uint256 xDVDAmount);
 
-    // Define the DVG token contract
+    //Define the DVD token contract
     function initialize(IERC20 _dvd) external initializer{
+        __ERC20_init("VIP DVD", "xDVD");
         dvd = _dvd;
+        tierAmount = [1000 * 1e18, 10_000 * 1e18, 50_000* 1e18, 100_000 * 1e18];
     }
+
+    // constructor(IERC20 _dvd) {
+    //     dvd = _dvd;
+    // }
 
     // Pay some DVDs. Earn some shares. Locks DVD and mints xDVD
     function deposit(uint256 _amount) public {
