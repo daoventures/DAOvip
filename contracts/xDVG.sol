@@ -4,8 +4,8 @@ pragma solidity 0.7.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 // This contract handles swapping to and from xDVG, DAOventures's vip token
 contract xDVG is ERC20("VIP DVG", "xDVG") {
@@ -18,7 +18,7 @@ contract xDVG is ERC20("VIP DVG", "xDVG") {
     event Withdraw(address indexed user, uint256 dvgAmount, uint256 xDVGAmount);
 
     // Define the DVG token contract
-    constructor (IERC20 _dvg) {
+    constructor(IERC20 _dvg) {
         dvg = _dvg;
     }
 
@@ -33,7 +33,7 @@ contract xDVG is ERC20("VIP DVG", "xDVG") {
         if (totalShares == 0) {
             what = _amount;
             _mint(msg.sender, _amount);
-        } 
+        }
         // Calculate and mint the amount of xDVG the DVG is worth. The ratio will change overtime
         else {
             what = _amount.mul(totalShares).div(totalDVG);
@@ -50,7 +50,9 @@ contract xDVG is ERC20("VIP DVG", "xDVG") {
         // Gets the amount of xDVG in existence
         uint256 totalShares = totalSupply();
         // Calculates the amount of DVG the xDVG is worth
-        uint256 what = _share.mul(dvg.balanceOf(address(this))).div(totalShares);
+        uint256 what = _share.mul(dvg.balanceOf(address(this))).div(
+            totalShares
+        );
         _burn(msg.sender, _share);
         dvg.safeTransfer(msg.sender, what);
 
