@@ -1,24 +1,21 @@
-const { ethers, network } = require("hardhat");
+const { ethers, network, artifacts, upgrades } = require("hardhat");
 const { mainnet: network_ } = require("../../addresses");
 
 const dvgAddress = network_.DVG;
+/* const proxyAdmin = network_.ProxyAdmin 
 const uniswapV2Router02Address = network_.UniswapV2Router02;
-const walletAddress = process.env.WALLET_ADDRESS;
+const walletAddress = process.env.WALLET_ADDRESS; */
 
-module.exports = async ({ deployments }) => {
+module.exports = async ({deployments}) => {
   const { deploy } = deployments;
   const [deployer] = await ethers.getSigners();
 
-  const xDVG = await deploy("xDVD", {
-    from: deployer.address,
-    args: [dvgAddress],
-  });
-  console.log("xDVD address: ", xDVG.address);
+  const IMPL = await ethers.getContractFactory("xDVD")
+  const impl = await upgrades.deployProxy(IMPL,[dvgAddress])
 
-  const DVGUniBot = await deploy("DVDUniBot", {
-    from: deployer.address,
-    args: [dvgAddress, xDVG.address, uniswapV2Router02Address, walletAddress],
-  });
-  console.log("DVDUniBot address: ", DVGUniBot.address);
-};
+  await impl.deployed() 
+  
+  console.log("Proxy xDVD address", impl.address)
+}
+
 module.exports.tags = ["hardhat_deploy"];
