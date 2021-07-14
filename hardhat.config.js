@@ -20,12 +20,12 @@ module.exports = {
     hardhat: {
       forking: {
         url: process.env.MAINNET_URL,
-        blockNumber: 12170855,
+        blockNumber: 12824763,
       },
       gas: 9500000, //default:9500000
       blockGasLimit: 12500000, //default:9500000
       accounts: {
-        count: 1000, //default:20
+        count: 20, //default:20
       },
     },
     /* 
