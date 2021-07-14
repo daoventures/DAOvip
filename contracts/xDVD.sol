@@ -6,9 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
 // This contract handles swapping to and from xDVG, DAOventures's vip token
-contract xDVD is ERC20("VIP DVD", "xDVD") {
+contract xDVD is ERC20("VIP DVD", "xDVD"), Initializable{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -26,7 +27,7 @@ contract xDVD is ERC20("VIP DVD", "xDVD") {
     event Withdraw(address indexed user, uint256 dvdAmount, uint256 xDVDAmount);
 
     // Define the DVG token contract
-    constructor (IERC20 _dvd) {
+    function initialize(IERC20 _dvd) external initializer{
         dvd = _dvd;
     }
 
@@ -62,7 +63,6 @@ contract xDVD is ERC20("VIP DVD", "xDVD") {
         uint256 totalShares = totalSupply();
         // Calculates the amount of DVD the xDVD is worth
         uint256 what = _share.mul(dvd.balanceOf(address(this))).div(totalShares);
-        _burn(msg.sender, _share);
         dvd.safeTransfer(msg.sender, what);
 
         uint _depositedAmount = user[msg.sender].amountDeposited.mul(_share).div(balanceOf(msg.sender));
@@ -72,6 +72,7 @@ contract xDVD is ERC20("VIP DVD", "xDVD") {
             user[msg.sender].tier = calculateTier(user[msg.sender].amountDeposited);
         }
 
+        _burn(msg.sender, _share);
         emit Withdraw(msg.sender, what, _share);
     }
 
