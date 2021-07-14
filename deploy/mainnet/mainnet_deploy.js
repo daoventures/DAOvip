@@ -9,21 +9,16 @@ module.exports = async ({ deployments }) => {
   const { deploy } = deployments;
   const [deployer] = await ethers.getSigners();
 
-  const xDVG = await deploy("xDVG", {
+  const xDVG = await deploy("xDVD", {
     from: deployer.address,
     args: [dvgAddress],
   });
   console.log("xDVG address: ", xDVG.address);
 
-  const DVGUniBot = await deploy("DVGUniBot", {
+  const DVGUniBot = await deploy("DVDUniBot", {
     from: deployer.address,
-    args: [
-      dvgAddress,
-      xDVG.address,
-      uniswapV2Router02Address,
-      walletAddress,
-    ],
+    args: [dvgAddress, xDVG.address, uniswapV2Router02Address, walletAddress],
   });
-  console.log("DVGUniBot address: ", DVGUniBot.address);
+  console.log("DVDUniBot address: ", DVGUniBot.address);
 };
-module.exports.tags = ["mainnet_deploy"]
+module.exports.tags = ["mainnet_deploy"];
