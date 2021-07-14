@@ -1,15 +1,22 @@
-pragma solidity >= 0.7.0 < 0.8.0;
+pragma solidity >=0.7.0 <0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// DVG token interface
 interface IDVGToken is IERC20 {
-    
     /// An event thats emitted when an account changes its delegate
-    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
+    event DelegateChanged(
+        address indexed delegator,
+        address indexed fromDelegate,
+        address indexed toDelegate
+    );
 
     /// An event thats emitted when a delegate account's vote balance changes
-    event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
+    event DelegateVotesChanged(
+        address indexed delegate,
+        uint256 previousBalance,
+        uint256 newBalance
+    );
 
     /// @notice Creates `_amount` token to `_to`. Must only be called by the owner
     function mint(address _to, uint256 _amount) external;
@@ -20,10 +27,10 @@ interface IDVGToken is IERC20 {
      */
     function delegates(address delegator) external view returns (address);
 
-   /**
-    * @notice Delegate votes from `msg.sender` to `delegatee`
-    * @param delegatee The address to delegate votes to
-    */
+    /**
+     * @notice Delegate votes from `msg.sender` to `delegatee`
+     * @param delegatee The address to delegate votes to
+     */
     function delegate(address delegatee) external;
 
     /**
@@ -35,7 +42,14 @@ interface IDVGToken is IERC20 {
      * @param r Half of the ECDSA signature pair
      * @param s Half of the ECDSA signature pair
      */
-    function delegateBySig(address delegatee, uint nonce, uint expiry, uint8 v, bytes32 r, bytes32 s) external;
+    function delegateBySig(
+        address delegatee,
+        uint256 nonce,
+        uint256 expiry,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
 
     /**
      * @notice Gets the current votes balance for `account`
@@ -51,6 +65,8 @@ interface IDVGToken is IERC20 {
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorVotes(address account, uint blockNumber) external view returns (uint256);
-
+    function getPriorVotes(address account, uint256 blockNumber)
+        external
+        view
+        returns (uint256);
 }
