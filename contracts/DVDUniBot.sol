@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./interfaces/IUniswapV2Router02.sol";
 
-contract DVGUniBot is Ownable, ReentrancyGuard {
+contract DVDUniBot is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using Address for address;
     using SafeERC20 for IERC20;
@@ -21,15 +21,15 @@ contract DVGUniBot is Ownable, ReentrancyGuard {
         uint256 decimals;
     }
 
-    IERC20 public dvg; 
-    IERC20 public xdvg; 
+    IERC20 public dvd; 
+    IERC20 public xdvd; 
     IUniswapV2Router02 public router;
     address public wallet;
     uint256 public minAmount = 500; 
     uint256 public amount = minAmount;
     mapping(IERC20 => Token) public token; 
 
-    event BuyDVG(address indexed user, IERC20 indexed token, uint256 dvgAmount);
+    event BuyDVD(address indexed user, IERC20 indexed token, uint256 dvdAmount);
     event SetWallet(address indexed who, address indexed newWallet);
     event SetAmount(uint256 minAmount, uint256 amount);
     event SetToken(address indexed who, IERC20 indexed token, bool allowed, uint256 decimals);
@@ -41,21 +41,21 @@ contract DVGUniBot is Ownable, ReentrancyGuard {
     }
 
     constructor (
-        IERC20 _dvg, 
-        IERC20 _xdvg, 
+        IERC20 _dvd, 
+        IERC20 _xdvd, 
         IUniswapV2Router02 _router, 
         address _wallet
     ) {        
-        dvg = _dvg;
-        xdvg = _xdvg;
+        dvd = _dvd;
+        xdvd = _xdvd;
         router = _router;
         wallet = _wallet;
     }
 
     receive() external payable {}
 
-    // Ask this smart contract to buy more DVGs on Uniswap, using funds in wallet     
-    function buyDVG(IERC20 _token) public payable onlyEOA nonReentrant returns(uint256 dvgAmount) {
+    // Ask this smart contract to buy more DVDs on Uniswap, using funds in wallet     
+    function buyDVD(IERC20 _token) public payable onlyEOA nonReentrant returns(uint256 dvdAmount) {
         require(token[_token].allowed, "Token not allowed");
         require(_token.balanceOf(wallet) >= minAmount.mul(token[_token].decimals), "Token balance of wallet not enough");
 
@@ -71,12 +71,12 @@ contract DVGUniBot is Ownable, ReentrancyGuard {
         uint[] memory amounts = router.swapExactTokensForETH(amount_, 0, path, address(this), block.timestamp);
 
         path[0] = weth;
-        path[1] = address(dvg);
-        amounts = router.swapExactETHForTokens{value:amounts[amounts.length - 1]}(0, path, address(xdvg), block.timestamp);
+        path[1] = address(dvd);
+        amounts = router.swapExactETHForTokens{value:amounts[amounts.length - 1]}(0, path, address(xdvd), block.timestamp);
 
-        dvgAmount = amounts[1];
+        dvdAmount = amounts[1];
 
-        emit BuyDVG(msg.sender, _token, dvgAmount);
+        emit BuyDVD(msg.sender, _token, dvdAmount);
     }
 
     function setWallet(address _wallet) external onlyOwner {
