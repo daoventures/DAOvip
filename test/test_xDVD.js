@@ -205,8 +205,6 @@ contract("xDVD", async () => {
         ethers.utils.formatEther(depositedAmount)
       );
       expect(currentTier.toString()).to.equal("4");
-
-      expect(balanceBefore.sub(balanceAfter)).to.equal(depositAmount);
     });
   });
 });
