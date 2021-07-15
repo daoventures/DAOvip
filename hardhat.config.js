@@ -4,6 +4,7 @@ require("@nomiclabs/hardhat-web3");
 require("@openzeppelin/hardhat-upgrades");
 require("hardhat-deploy");
 require("hardhat-deploy-ethers");
+require("@nomiclabs/hardhat-etherscan");
 
 require("dotenv").config();
 
@@ -28,7 +29,11 @@ module.exports = {
         count: 20, //default:20
       },
     },
-    /* 
+    goerli: {
+      url: process.env.GOERLI_URL,
+      accounts: [`0x${process.env.PRIVATE_KEY}`]
+    },
+    
     kovan: {
       url: process.env.KOVAN_URL,
       from: process.env.ACCOUNT,
@@ -37,16 +42,15 @@ module.exports = {
 
     mainnet: {
       url: process.env.MAINNET_URL,
-      from: process.env.ACCOUNT,
       accounts: [`0x${process.env.PRIVATE_KEY}`]
-    }*/
+    }
   },
 
-  /*
+  
   etherscan: {
-    apikey: process.env.ETHERSCAN_API_KEY
+    apiKey: process.env.ETHERSCAN_API_KEY
   },
-  */
+ 
 
   solidity: {
     optimizer: {

@@ -85,3 +85,17 @@ npx hardhat deploy --network <network> --tags <network>_deploy
 
 ```
 
+Push `deployments` directory once the deployment is completed.
+
+### Upgrade
+
+```
+
+npx hardhat deploy --network <network> --tags <network>_deploy
+
+```
+
+This will deploy the new implementations contract. If the `proxyOwner` is multisig, Tx will be printed in console.
+Once the transaction is made from multiSig, run the above command again.
+
+Push `deployments` directory everytime upgrade is done.
