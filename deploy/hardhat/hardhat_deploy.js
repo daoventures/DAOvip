@@ -30,7 +30,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // await xDVD.deployed();
 
-  console.log("Proxy xDVD address", xDVD.address);
+  console.log("Proxy xDVD address", (await xDVD).address);
 };
 
 module.exports.tags = ["hardhat_deploy"];

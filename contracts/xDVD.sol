@@ -37,10 +37,6 @@ contract xDVD is ERC20Upgradeable {
         ];
     }
 
-    // constructor(IERC20 _dvd) {
-    //     dvd = _dvd;
-    // }
-
     // Pay some DVDs. Earn some shares. Locks DVD and mints xDVD
     function deposit(uint256 _amount) public {
         // Gets the amount of DVD locked in the contract
@@ -84,14 +80,15 @@ contract xDVD is ERC20Upgradeable {
         .mul(_share)
         .div(balanceOf(msg.sender));
 
-        if (what > _depositedAmount) {
-            user[msg.sender].amountDeposited = user[msg.sender]
+        
+        user[msg.sender].amountDeposited = user[msg.sender]
             .amountDeposited
             .sub(_depositedAmount);
-            user[msg.sender].tier = calculateTier(
+            
+        user[msg.sender].tier = calculateTier(
                 user[msg.sender].amountDeposited
             );
-        }
+        
 
         _burn(msg.sender, _share);
         emit Withdraw(msg.sender, what, _share);
