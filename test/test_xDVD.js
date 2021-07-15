@@ -79,7 +79,7 @@ contract("xDVD", async () => {
       const balanceBefore = await dvg.balanceOf(signer.address);
       console.log("🚀 | 4. | balanceBefore", balanceBefore.toString());
 
-      const balanceXDVD = await xdvd.balanceOf(signer.address);
+      let balanceXDVD = await xdvd.balanceOf(signer.address);
       console.log("🚀 | 4. | balanceXDVD", balanceXDVD.toString());
       const withdrawAmount = ethers.utils.parseEther("1.0");
       console.log(
@@ -91,7 +91,14 @@ contract("xDVD", async () => {
       console.log("🚀 | 4. | balanceAfter", balanceAfter.toString());
       expect(balanceAfter.sub(balanceBefore)).to.equal(withdrawAmount);
       balanceXDVD = await xdvd.balanceOf(signer.address);
-      expect(balanceXDVD).to.equal(balanceAfter.sub(balanceBefore));
+      expect(balanceXDVD).to.equal(ZERO);
+
+      [_, depositedAmount] = await xdvd.getTier(signer.address);
+      console.log(
+        "🚀 | 4. | depositedAmount",
+        ethers.utils.formatEther(depositedAmount)
+      );
+      expect(depositedAmount).to.equal(ZERO);
     });
   });
 
