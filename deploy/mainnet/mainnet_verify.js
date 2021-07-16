@@ -29,4 +29,4 @@ module.exports = async () => {
 };
 
 module.exports.tags = ["mainnet_verify"];
-module.exports.dependencies = ["mainnet_deploy_bot"]
+// module.exports.dependencies = ["mainnet_deploy_bot"]

@@ -82,6 +82,8 @@ npx hardhat compile
 ```
 
 npx hardhat deploy --network <network> --tags <network>_deploy
+npx hardhat deploy --network <network> --tags <network>_deploy_bot
+npx hardhat deploy --network <network> --tags <network>_verify
 
 ```
 

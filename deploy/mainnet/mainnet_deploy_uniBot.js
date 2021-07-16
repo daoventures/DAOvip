@@ -19,4 +19,4 @@ module.exports = async ({ deployments }) => {
   console.log("DVDUniBot address: ", DVDUniBot.address);
 };
 module.exports.tags = ["mainnet_deploy_bot"];
-module.exports.dependencies = ["mainnet_deploy"]
+// module.exports.dependencies = ["mainnet_deploy"]
