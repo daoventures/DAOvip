@@ -120,4 +120,6 @@ contract xDVD is ERC20Upgradeable {
         _tier = user[_addr].tier;
         _depositedAmount = user[_addr].amountDeposited;
     }
+
+    uint256[47] private __gap;
 }
