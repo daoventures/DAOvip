@@ -94,21 +94,23 @@ contract xDVD is ERC20Upgradeable {
         internal
         view
         returns (uint256)
-    {
-        if (_depositedAmount <= tierAmount[0]) {
+    {   
+        if (_depositedAmount == 0){
+            return 0; //no tier bonus
+        } else if (_depositedAmount <= tierAmount[0]) {
             //less than or equal to 1000
-            return 0;
+            return 1;
         } else if (_depositedAmount <= tierAmount[1]) {
             //less than or equal to 10_000
-            return 1;
+            return 2;
         } else if (_depositedAmount <= tierAmount[2]) {
             //less than or equal to 50_000
-            return 2;
+            return 3;
         } else if (_depositedAmount <= tierAmount[3]) {
             //less than or equal to 100_000
-            return 3;
-        } else {
             return 4;
+        } else {
+            return 5;
         }
     }
 

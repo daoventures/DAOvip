@@ -141,7 +141,7 @@ contract("xDVD", async () => {
         "🚀 | 5. | depositedAmount",
         ethers.utils.formatEther(depositedAmount)
       );
-      expect(currentTier.toString()).to.equal("0");
+      expect(currentTier.toString()).to.equal("1");
 
       // Deposited amount = 2000 => Tier 1
       depositAmount = ethers.utils.parseEther("1001.0");
@@ -153,7 +153,7 @@ contract("xDVD", async () => {
         "🚀 | 5. | depositedAmount",
         ethers.utils.formatEther(depositedAmount)
       );
-      expect(currentTier.toString()).to.equal("1");
+      expect(currentTier.toString()).to.equal("2");
 
       // Deposited amount = 1000 => Tier 0
       withdrawAmount = ethers.utils.parseEther("1000.0");
@@ -168,7 +168,7 @@ contract("xDVD", async () => {
         "🚀 | 5. | depositedAmount",
         ethers.utils.formatEther(depositedAmount)
       );
-      expect(currentTier.toString()).to.equal("0");
+      expect(currentTier.toString()).to.equal("1");
 
       // Deposited amount = 10001 => Tier 2
       depositAmount = ethers.utils.parseEther("9001.0");
@@ -180,7 +180,7 @@ contract("xDVD", async () => {
         "🚀 | 5. | depositedAmount",
         ethers.utils.formatEther(depositedAmount)
       );
-      expect(currentTier.toString()).to.equal("2");
+      expect(currentTier.toString()).to.equal("3");
 
       // Deposited amount = 50001 => Tier 3
       depositAmount = ethers.utils.parseEther("40000.0");
@@ -192,7 +192,7 @@ contract("xDVD", async () => {
         "🚀 | 5. | depositedAmount",
         ethers.utils.formatEther(depositedAmount)
       );
-      expect(currentTier.toString()).to.equal("3");
+      expect(currentTier.toString()).to.equal("4");
 
       // Deposited amount = 50001 => Tier 3
       depositAmount = ethers.utils.parseEther("50000.0");
@@ -204,13 +204,13 @@ contract("xDVD", async () => {
         "🚀 | 5. | depositedAmount",
         ethers.utils.formatEther(depositedAmount)
       );
-      expect(currentTier.toString()).to.equal("4");
+      expect(currentTier.toString()).to.equal("5");
     });
   });
 });
 
 async function executeDeployment() {
-  await deployments.fixture(["hardhat_deploy"]);
+  await deployments.fixture(["mainnet_deploy"]);
 
   await network.provider.request({
     method: "hardhat_impersonateAccount",
