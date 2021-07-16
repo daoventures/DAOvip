@@ -17,7 +17,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         owner: deployer.address, // Owner of proxy
         methodName: "initialize", // Method to execute when deploying proxy
       },
-      args: [dvgAddress],
+      args: [dvgAddress, "VIP DVD", "xDVD", [
+        "1000000000000000000000", //1000
+        "10000000000000000000000", //10000
+        "50000000000000000000000", //50000
+        "100000000000000000000000", //100000
+      ]
+      ],
     }))
   );
 

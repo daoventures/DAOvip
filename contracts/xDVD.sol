@@ -2,39 +2,34 @@
 
 pragma solidity 0.7.6;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
 // This contract handles swapping to and from xDVD, DAOventures's vip token
 contract xDVD is ERC20Upgradeable {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeMathUpgradeable for uint256;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     struct User {
         uint256 tier;
         uint256 amountDeposited;
     }
 
-    IERC20 public dvd;
+    IERC20Upgradeable public dvd;
 
-    uint256[] tierAmount;
+    uint256[] public tierAmount;
     mapping(address => User) user;
 
     event Deposit(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
     event Withdraw(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
 
     //Define the DVD token contract
-    function initialize(address _dvd) external initializer {
-        __ERC20_init("VIP DVD", "xDVD");
-        dvd = IERC20(_dvd);
-        tierAmount = [
-            1000 * 1e18,
-            10_000 * 1e18,
-            50_000 * 1e18,
-            100_000 * 1e18
-        ];
+    function initialize(address _dvd, string memory _name, string memory _symbol, uint[] memory _tierAmounts) external initializer {
+        __ERC20_init(_name, _symbol);
+        dvd = IERC20Upgradeable(_dvd);
+        tierAmount = _tierAmounts; 
     }
 
     // Pay some DVDs. Earn some shares. Locks DVD and mints xDVD
@@ -73,7 +68,6 @@ contract xDVD is ERC20Upgradeable {
         uint256 what = _share.mul(dvd.balanceOf(address(this))).div(
             totalShares
         );
-        dvd.safeTransfer(msg.sender, what);
 
         uint256 _depositedAmount = user[msg.sender]
         .amountDeposited
@@ -91,6 +85,8 @@ contract xDVD is ERC20Upgradeable {
         
 
         _burn(msg.sender, _share);
+        dvd.safeTransfer(msg.sender, what);
+
         emit Withdraw(msg.sender, what, _share);
     }
 
