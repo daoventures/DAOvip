@@ -2,16 +2,16 @@
 
 pragma solidity 0.7.6;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-upgradeable/math/MathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
 
 // This contract handles swapping to and from xDVD, DAOventures's vip token
 contract xDVD is ERC20Upgradeable {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeMathUpgradeable for uint256;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     struct User {
         uint256 tier;  // It's not used in v2
@@ -23,28 +23,29 @@ contract xDVD is ERC20Upgradeable {
         uint8[] tiers;
     }
 
-    IERC20 public dvd;
+    IERC20Upgradeable public dvd;
 
-    uint256[] tierAmount;
+    uint256[] public tierAmounts;
     mapping(address => User) user;
 
     //
     // v2 variables
     //
+    address private _owner;
     mapping (address => TierSnapshots) private _accountTierSnapshots;
 
     event Deposit(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
     event Withdraw(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
+    event TierAmount(uint256[] newTierAmounts);
     event Tier(address indexed user, uint8 prevTier, uint8 newTier);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     //Define the DVD token contract
-    function initialize(address _dvd) external initializer {
-        __ERC20_init("VIP DVD", "xDVD");
-        dvd = IERC20(_dvd);
-        tierAmount = [
-            1000 * 1e18,
-            10_000 * 1e18
-        ];
+    function initialize(address _dvd, string memory _name, string memory _symbol, uint[] memory _tierAmounts) external initializer {
+        require(_tierAmounts.length < 10, "Tier range is from 0 to 10");
+        __ERC20_init(_name, _symbol);
+        dvd = IERC20Upgradeable(_dvd);
+        tierAmounts = _tierAmounts; 
     }
 
     // Pay some DVDs. Earn some shares. Locks DVD and mints xDVD
@@ -92,7 +93,6 @@ contract xDVD is ERC20Upgradeable {
         uint256 what = _share.mul(dvd.balanceOf(address(this))).div(
             totalShares
         );
-        dvd.safeTransfer(msg.sender, what);
 
         uint256 _depositedAmount = user[msg.sender]
         .amountDeposited
@@ -104,23 +104,28 @@ contract xDVD is ERC20Upgradeable {
         _updateSnapshot(msg.sender, user[msg.sender].amountDeposited);
 
         _burn(msg.sender, _share);
+        dvd.safeTransfer(msg.sender, what);
+
         emit Withdraw(msg.sender, what, _share);
+    }
+
+    function setTierAmount(uint[] memory _tierAmounts) external onlyOwner {
+        require(_tierAmounts.length < 10, "Tier range is from 0 to 10");
+        tierAmounts = _tierAmounts; 
+        emit TierAmount(tierAmounts);
     }
 
     function _calculateTier(uint256 _depositedAmount) internal view returns (uint8) {
         if (_depositedAmount == 0) {
-            // Doesn't have tier
+            // No tier bonus
             return 0;
-        } else if (_depositedAmount <= tierAmount[0]) {
-            // Beginner (0-1k)
-            return 1;
-        } else if (_depositedAmount <= tierAmount[1]) {
-            // Intermediate (1k-10k)
-            return 2;
-        } else {
-            // Legendary (10k and above)
-            return 3;
         }
+        for (uint8 i = 0; i < tierAmounts.length ; i ++) {
+            if (_depositedAmount <= tierAmounts[i]) {
+                return (i + 1);
+            }
+        }
+        return uint8(tierAmounts.length) + 1;
     }
 
     function getTier(address _addr) public view returns (uint8 _tier, uint256 _depositedAmount) {
@@ -214,5 +219,40 @@ contract xDVD is ERC20Upgradeable {
         return (true, mid);
     }
 
-    uint256[46] private __gap;
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(_owner == msg.sender, "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        _transferOwnership(newOwner);
+    }
+
+    function initOwner(address newOwner) external {
+        // It's available when _owner is not set and sender is DVDUniBot's owner.
+        require(_owner == address(0) && msg.sender == 0xA1b0176B24cFB9DB3AEe2EDf7a6DF129B69ED376, "Access restricted");
+        _transferOwnership(newOwner);
+    }
+
+    function _transferOwnership(address newOwner) internal {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+
+    uint256[45] private __gap;
 }
