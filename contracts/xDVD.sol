@@ -156,11 +156,13 @@ contract xDVD is ERC20Upgradeable {
     }
 
     function _updateSnapshot(address _addr, uint256 _depositedAmount) private {
-        uint8 tier = _calculateTier(_depositedAmount);
         TierSnapshots storage snapshots = _accountTierSnapshots[_addr];
-        if (_lastSnapshotTier(snapshots.tiers) !=  tier) {
+        uint8 prevTier = _lastSnapshotTier(snapshots.tiers);
+        uint8 tier = _calculateTier(_depositedAmount);
+        if (prevTier != tier) {
             snapshots.blockNumbers.push(block.number);
             snapshots.tiers.push(tier);
+            emit Tier(_addr, prevTier, tier);
         }
     }
 
@@ -211,4 +213,6 @@ contract xDVD is ERC20Upgradeable {
         }
         return (true, mid);
     }
+
+    uint256[46] private __gap;
 }
