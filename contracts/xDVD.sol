@@ -5,14 +5,13 @@ pragma solidity 0.7.6;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/math/MathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/ArraysUpgradeable.sol";
 
 // This contract handles swapping to and from xDVD, DAOventures's vip token
 contract xDVD is ERC20Upgradeable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    using ArraysUpgradeable for uint256[];
 
     struct User {
         uint256 tier;  // It's not used in v2
@@ -109,19 +108,22 @@ contract xDVD is ERC20Upgradeable {
     }
 
     function _calculateTier(uint256 _depositedAmount) internal view returns (uint8) {
-        if (_depositedAmount <= tierAmount[0]) {
-            // Beginner (0-1k)
+        if (_depositedAmount == 0) {
+            // Doesn't have tier
             return 0;
+        } else if (_depositedAmount <= tierAmount[0]) {
+            // Beginner (0-1k)
+            return 1;
         } else if (_depositedAmount <= tierAmount[1]) {
             // Intermediate (1k-10k)
-            return 1;
+            return 2;
         } else {
             // Legendary (10k and above)
-            return 2;
+            return 3;
         }
     }
 
-    function getTier(address _addr) public view returns (uint256 _tier, uint256 _depositedAmount) {
+    function getTier(address _addr) public view returns (uint8 _tier, uint256 _depositedAmount) {
         _depositedAmount = user[_addr].amountDeposited;
         _tier = _calculateTier(_depositedAmount);
     }
@@ -129,26 +131,28 @@ contract xDVD is ERC20Upgradeable {
     /**
      * @dev Retrieves the tier of `_addr` at the `_blockNumber`.
      */
-    function tierAt(address _addr, uint256 _blockNumber) public view returns (uint8) {
-        (bool snapshotted, uint8 tier) = _tierAt(_blockNumber, _accountTierSnapshots[_addr]);
-
-        return snapshotted ? tier : _calculateTier(user[_addr].amountDeposited);
+    function tierAt(address _addr, uint256 _blockNumber) public view returns (uint8, uint256, uint256) {
+        (bool snapshotted, uint8 tier, uint256 startBlock, uint256 endBlock) = _tierAt(_blockNumber, _accountTierSnapshots[_addr]);
+        if (snapshotted == false) {
+            tier = _calculateTier(user[_addr].amountDeposited);
+            startBlock = 0;
+            endBlock = block.number;
+        }
+        return (tier, startBlock, endBlock);
     }
 
-    function _tierAt(uint256 blockNumber, TierSnapshots storage snapshots) internal view returns (bool, uint8)
-    {
-        uint256 snpashotCount = snapshots.blockNumbers.length;
-        if (snpashotCount == 0) {
-            // Nothing in the snapshot
-            return (false, 0);
-        }
-        if (blockNumber < snapshots.blockNumbers[0] || snapshots.blockNumbers[snpashotCount-1] < blockNumber) {
-            // Out of snapshot range
-            return (false, 0);
-        }
+    function _tierAt(uint256 blockNumber, TierSnapshots storage snapshots) internal view returns (bool, uint8, uint256, uint256) {
+        uint8 tier;
+        uint256 startBlock;
+        uint256 endBlock;
 
-        uint256 index = snapshots.blockNumbers.findUpperBound(blockNumber);
-        return (true, snapshots.tiers[index]);
+        (bool found, uint256 index) = _findLowerBound(snapshots.blockNumbers, blockNumber);
+        if (found == true) {
+            tier = snapshots.tiers[index];
+            startBlock = snapshots.blockNumbers[index];
+            endBlock = (index < (snapshots.blockNumbers.length - 1)) ? (snapshots.blockNumbers[index + 1] - 1) : block.number;
+        }
+        return (found, tier, startBlock, endBlock);
     }
 
     function _updateSnapshot(address _addr, uint256 _depositedAmount) private {
@@ -166,5 +170,45 @@ contract xDVD is ERC20Upgradeable {
         } else {
             return _tiers[_tiers.length - 1];
         }
+    }
+
+   /**
+     * @dev Searches a sorted `array` and returns the first index that contains
+     * a value less or equal to `element`.
+     *
+     * `array` is expected to be sorted in ascending order, and to contain no
+     * repeated elements.
+     */
+    function _findLowerBound(uint256[] storage array, uint256 element) internal view returns (bool, uint256) {
+        if (array.length == 0) {
+            // Nothing in the array
+            return (false, 0);
+        }
+        if (element < array[0]) {
+            // Out of array range
+            return (false, 0);
+        }
+
+        uint256 low = 0;
+        uint256 high = array.length;
+        uint256 mid;
+
+        // The looping is limited as 256. In fact, this looping will be early broken because the maximum slot count is 2^256
+        for (uint16 i = 0; i < 256; i ++) {
+            mid = MathUpgradeable.average(low, high);
+
+            // Note that mid will always be strictly less than high (i.e. it will be a valid array index)
+            // because Math.average rounds down (it does integer division with truncation).
+            if (element < array[mid]) {
+                high = mid;
+            } else if (element == array[mid] || low == mid) {
+                // Found the correct element
+                // Or the array[low] is the less and the nearest value to the element
+                break;
+            } else {
+                low = mid;
+            }
+        }
+        return (true, mid);
     }
 }
