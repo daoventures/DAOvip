@@ -40,6 +40,17 @@ contract xDVD is ERC20Upgradeable {
     event Tier(address indexed user, uint8 prevTier, uint8 newTier);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
+    /// @dev Require that the caller must be an EOA account to avoid flash loans
+    modifier onlyEOA() {
+        require(msg.sender == tx.origin, "Not EOA");
+        _;
+    }
+
+    modifier onlyContract() {
+        require(AddressUpgradeable.isContract(msg.sender), "Not a contract");
+        _;
+    }
+
     //Define the DVD token contract
     function initialize(address _dvd, string memory _name, string memory _symbol, uint[] memory _tierAmounts) external initializer {
         require(_tierAmounts.length < 10, "Tier range is from 0 to 10");
@@ -49,14 +60,15 @@ contract xDVD is ERC20Upgradeable {
     }
 
     // Pay some DVDs. Earn some shares. Locks DVD and mints xDVD
-    function deposit(uint256 _amount) public {
+    function deposit(uint256 _amount) external onlyEOA {
         _deposit(msg.sender, msg.sender, _amount);
     }
 
     /**
      * @dev This function will be called from DAOmine. The msg.sender is DAOmine.
      */
-    function depositByProxy(address _user, uint256 _amount) public {
+    function depositByProxy(address _user, uint256 _amount) external onlyContract {
+        require(_user != address(0), "Invalid user address");
         _deposit(msg.sender, _user, _amount);
     }
 
