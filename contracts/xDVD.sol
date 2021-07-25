@@ -140,18 +140,18 @@ contract xDVD is ERC20Upgradeable {
         return uint8(tierAmounts.length) + 1;
     }
 
-    function getTier(address _addr) public view returns (uint8 _tier, uint256 _depositedAmount) {
-        _depositedAmount = user[_addr].amountDeposited;
+    function getTier(address _account) public view returns (uint8 _tier, uint256 _depositedAmount) {
+        _depositedAmount = user[_account].amountDeposited;
         _tier = _calculateTier(_depositedAmount);
     }
 
     /**
-     * @dev Retrieves the tier of `_addr` at the `_blockNumber`.
+     * @dev Retrieves the tier of `_account` at the `_blockNumber`.
      */
-    function tierAt(address _addr, uint256 _blockNumber) public view returns (uint8, uint256, uint256) {
-        (bool snapshotted, uint8 tier, uint256 startBlock, uint256 endBlock) = _tierAt(_blockNumber, _accountTierSnapshots[_addr]);
+    function tierAt(address _account, uint256 _blockNumber) public view returns (uint8, uint256, uint256) {
+        (bool snapshotted, uint8 tier, uint256 startBlock, uint256 endBlock) = _tierAt(_blockNumber, _accountTierSnapshots[_account]);
         if (snapshotted == false) {
-            tier = _calculateTier(user[_addr].amountDeposited);
+            tier = _calculateTier(user[_account].amountDeposited);
             startBlock = 0;
             endBlock = block.number;
         }
@@ -172,14 +172,14 @@ contract xDVD is ERC20Upgradeable {
         return (found, tier, startBlock, endBlock);
     }
 
-    function _updateSnapshot(address _addr, uint256 _depositedAmount) private {
-        TierSnapshots storage snapshots = _accountTierSnapshots[_addr];
+    function _updateSnapshot(address _account, uint256 _depositedAmount) private {
+        TierSnapshots storage snapshots = _accountTierSnapshots[_account];
         uint8 prevTier = _lastSnapshotTier(snapshots.tiers);
         uint8 tier = _calculateTier(_depositedAmount);
         if (prevTier != tier) {
             snapshots.blockNumbers.push(block.number);
             snapshots.tiers.push(tier);
-            emit Tier(_addr, prevTier, tier);
+            emit Tier(_account, prevTier, tier);
         }
     }
 
