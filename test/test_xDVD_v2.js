@@ -51,15 +51,15 @@ describe("xDVD v2", async () => {
       console.log("🚀 | 3. | balanceBefore", balanceBefore.toString());
       const depositAmount = ethers.utils.parseEther("1.0");
       console.log("🚀 | 3. | depositAmount", depositAmount.toString());
-      await dvd.increaseAllowance(xdvd.address, depositAmount);
-      // await xdvd.connect(user).deposit(depositAmount);
-      // const balanceAfter = await dvd.balanceOf(user.address);
-      // console.log("🚀 | 3. | balanceAfter", balanceAfter.toString());
-      // expect(balanceBefore.sub(balanceAfter)).to.equal(depositAmount);
+      await dvd.connect(user).increaseAllowance(xdvd.address, depositAmount);
+      await xdvd.connect(user).deposit(depositAmount, false);
+      const balanceAfter = await dvd.balanceOf(user.address);
+      console.log("🚀 | 3. | balanceAfter", balanceAfter.toString());
+      expect(balanceBefore.sub(balanceAfter)).to.equal(depositAmount);
 
-      // const balanceXDVD = await xdvd.balanceOf(user.address);
-      // console.log("🚀 | 3. | balanceXDVD", balanceXDVD.toString());
-      // expect(balanceXDVD).to.equal(depositAmount);
+      const balanceXDVD = await xdvd.balanceOf(user.address);
+      console.log("🚀 | 3. | balanceXDVD", balanceXDVD.toString());
+      expect(balanceXDVD).to.equal(depositAmount);
     });
 
     it("4. Should Withdraw Successfully", async () => {
@@ -105,90 +105,50 @@ describe("xDVD v2", async () => {
       console.log("🚀 | 5. | balanceXDVD", balanceXDVD.toString());
       expect(balanceXDVD).to.equal(ZERO);
 
+      // Deposited amount = 0 => Tier 0
       [currentTier, depositedAmount] = await xdvd.getTier(user.address);
       console.log("🚀 | 5. | currentTier", currentTier.toString());
-      console.log(
-        "🚀 | 5. | depositedAmount",
-        ethers.utils.formatEther(depositedAmount)
-      );
+      console.log("🚀 | 5. | depositedAmount", ethers.utils.formatEther(depositedAmount));
       expect(currentTier.toString()).to.equal("0");
 
-      await dvd.increaseAllowance(xdvd.address, MAX_INT);
+      await dvd.connect(user).increaseAllowance(xdvd.address, MAX_INT);
 
       // Deposited amount = 999 => Tier 1
       depositAmount = ethers.utils.parseEther("999.0");
       console.log("🚀 | 5. | depositAmount", depositAmount.toString());
-      await xdvd.connect(user).deposit(depositAmount);
+      await xdvd.connect(user).deposit(depositAmount, false);
       [currentTier, depositedAmount] = await xdvd.getTier(user.address);
       console.log("🚀 | 5. | currentTier", currentTier.toString());
-      console.log(
-        "🚀 | 5. | depositedAmount",
-        ethers.utils.formatEther(depositedAmount)
-      );
-      expect(currentTier.toString()).to.equal("0");
-
-      // Deposited amount = 2000 => Tier 1
-      depositAmount = ethers.utils.parseEther("1001.0");
-      console.log("🚀 | 5. | depositAmount", depositAmount.toString());
-      await xdvd.connect(user).deposit(depositAmount);
-      [currentTier, depositedAmount] = await xdvd.getTier(user.address);
-      console.log("🚀 | 5. | currentTier", currentTier.toString());
-      console.log(
-        "🚀 | 5. | depositedAmount",
-        ethers.utils.formatEther(depositedAmount)
-      );
+      console.log("🚀 | 5. | depositedAmount", ethers.utils.formatEther(depositedAmount));
       expect(currentTier.toString()).to.equal("1");
 
-      // Deposited amount = 1000 => Tier 0
+      // Deposited amount = 2000 => Tier 2
+      depositAmount = ethers.utils.parseEther("1001.0");
+      console.log("🚀 | 5. | depositAmount", depositAmount.toString());
+      await xdvd.connect(user).deposit(depositAmount, false);
+      [currentTier, depositedAmount] = await xdvd.getTier(user.address);
+      console.log("🚀 | 5. | currentTier", currentTier.toString());
+      console.log("🚀 | 5. | depositedAmount", ethers.utils.formatEther(depositedAmount));
+      expect(currentTier.toString()).to.equal("2");
+
+      // Deposited amount = 1000 => Tier 1
       withdrawAmount = ethers.utils.parseEther("1000.0");
-      console.log(
-        "🚀 | 5. | withdrawAmount",
-        ethers.utils.formatEther(withdrawAmount)
-      );
+      console.log("🚀 | 5. | withdrawAmount", ethers.utils.formatEther(withdrawAmount) );
       await xdvd.connect(user).withdraw(withdrawAmount);
       [currentTier, depositedAmount] = await xdvd.getTier(user.address);
       console.log("🚀 | 5. | currentTier", currentTier.toString());
-      console.log(
-        "🚀 | 5. | depositedAmount",
-        ethers.utils.formatEther(depositedAmount)
-      );
-      expect(currentTier.toString()).to.equal("0");
+      console.log("🚀 | 5. | depositedAmount", ethers.utils.formatEther(depositedAmount));
+      expect(currentTier.toString()).to.equal("1");
 
-      // Deposited amount = 10001 => Tier 2
+      // Deposited amount = 10001 => Tier 3
       depositAmount = ethers.utils.parseEther("9001.0");
       console.log("🚀 | 5. | depositAmount", depositAmount.toString());
-      await xdvd.connect(user).deposit(depositAmount);
+      await xdvd.connect(user).deposit(depositAmount, false);
       [currentTier, depositedAmount] = await xdvd.getTier(user.address);
       console.log("🚀 | 5. | currentTier", currentTier.toString());
-      console.log(
-        "🚀 | 5. | depositedAmount",
-        ethers.utils.formatEther(depositedAmount)
-      );
-      expect(currentTier.toString()).to.equal("2");
-
-      // Deposited amount = 50001 => Tier 3
-      depositAmount = ethers.utils.parseEther("40000.0");
-      console.log("🚀 | 5. | depositAmount", depositAmount.toString());
-      await xdvd.connect(user).deposit(depositAmount);
-      [currentTier, depositedAmount] = await xdvd.getTier(user.address);
-      console.log("🚀 | 5. | currentTier", currentTier.toString());
-      console.log(
-        "🚀 | 5. | depositedAmount",
-        ethers.utils.formatEther(depositedAmount)
-      );
+      console.log("🚀 | 5. | depositedAmount", ethers.utils.formatEther(depositedAmount));
       expect(currentTier.toString()).to.equal("3");
-
-      // Deposited amount = 50001 => Tier 3
-      depositAmount = ethers.utils.parseEther("50000.0");
-      console.log("🚀 | 5. | depositAmount", depositAmount.toString());
-      await xdvd.connect(user).deposit(depositAmount);
-      [currentTier, depositedAmount] = await xdvd.getTier(user.address);
-      console.log("🚀 | 5. | currentTier", currentTier.toString());
-      console.log(
-        "🚀 | 5. | depositedAmount",
-        ethers.utils.formatEther(depositedAmount)
-      );
-      expect(currentTier.toString()).to.equal("4");
     });
   });
+
 });
