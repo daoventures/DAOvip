@@ -267,8 +267,9 @@ contract xDVD is ERC20Upgradeable {
 
     /**
      * @dev Returns the address of the current owner.
+     *      It's named to getOwner because EIP173Proxy already has owner() method
      */
-    function owner() public view virtual returns (address) {
+    function getOwner() public view virtual returns (address) {
         return _owner;
     }
 

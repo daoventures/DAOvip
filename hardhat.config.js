@@ -1,75 +1,57 @@
 require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-truffle5");
-require("@nomiclabs/hardhat-web3");
-require("@openzeppelin/hardhat-upgrades");
+require("@nomiclabs/hardhat-etherscan");
+require('@nomiclabs/hardhat-ethers');
 require("hardhat-deploy");
 require("hardhat-deploy-ethers");
+require("hardhat-gas-reporter");
 
 require("dotenv").config();
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
+const apiKey = process.env.ETHERSCAN_API_KEY;
+const mainnetUrl = process.env.ALCHEMY_URL_MAINNET;
+const mainnetBlockNumber = 12910300;
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-module.exports = {
-  defaultNetwork: "hardhat",
-
+ module.exports = {
+  solidity: {
+    compilers: [{
+      version: "0.7.6",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      }
+    }],
+  },
   networks: {
     hardhat: {
       forking: {
-        url: process.env.MAINNET_URL,
-        blockNumber: 12824763,
-      },
-      gas: 9500000, //default:9500000
-      blockGasLimit: 12500000, //default:9500000
-      accounts: {
-        count: 20, //default:20
+        url: mainnetUrl,
+        blockNumber: mainnetBlockNumber,
       },
     },
-    /* 
-    kovan: {
-      url: process.env.KOVAN_URL,
-      from: process.env.ACCOUNT,
-      accounts: [`0x${process.env.PRIVATE_KEY}`]
-    },
-
     mainnet: {
-      url: process.env.MAINNET_URL,
-      from: process.env.ACCOUNT,
-      accounts: [`0x${process.env.PRIVATE_KEY}`]
-    }*/
-  },
-
-  /*
-  etherscan: {
-    apikey: process.env.ETHERSCAN_API_KEY
-  },
-  */
-
-  solidity: {
-    optimizer: {
-      enabled: true,
-      runs: 200,
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: [process.env.PRIVATE_KEY]
     },
-    compilers: [
-      {
-        version: "0.7.6",
-      },
-    ],
+    kovan: {
+      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: [process.env.PRIVATE_KEY]
+    },
   },
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts",
+  etherscan: {
+    apiKey: apiKey
+  },
+  gasReporter: {
+    enabled: true
   },
   mocha: {
-    timeout: 2000000, // default: 20000
-  },
-
-  gasReporter: {
-    showTimeSpent: true,
+    timeout: 50000
   },
 };
