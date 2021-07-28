@@ -8,6 +8,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
 
+import "./interfaces/IDAOmine.sol";
+
 // This contract handles swapping to and from xDVD, DAOventures's vip token
 contract xDVD is ERC20Upgradeable {
     using SafeMathUpgradeable for uint256;
@@ -34,9 +36,12 @@ contract xDVD is ERC20Upgradeable {
     address private _owner;
     mapping (address => TierSnapshots) private _accountTierSnapshots;
 
+    IDAOmine daoMine;
+
     event Deposit(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
     event Withdraw(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
     event TierAmount(uint256[] newTierAmounts);
+    event SetDAOmine(address indexed daoMaine);
     event Tier(address indexed user, uint8 prevTier, uint8 newTier);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -59,42 +64,58 @@ contract xDVD is ERC20Upgradeable {
         tierAmounts = _tierAmounts; 
     }
 
-    // Pay some DVDs. Earn some shares. Locks DVD and mints xDVD
-    function deposit(uint256 _amount) external onlyEOA {
-        _deposit(msg.sender, msg.sender, _amount);
+    /**
+     * @dev Pay some DVDs. Earn some shares. Locks DVD and mints xDVD.
+     *
+     * @param _autoStake     Stake xDVD to the DAOmine if _autoStake is true
+     */
+    function deposit(uint256 _amount, bool _autoStake) external onlyEOA {
+        address account = msg.sender;
+
+        if (_autoStake && address(daoMine) == address(0)) {
+            uint256 xdvdBalance = balanceOf(address(this));
+            _deposit(account, account, _amount, true);
+            uint256 xdvdAmount = balanceOf(address(this)).sub(xdvdBalance);
+            daoMine.depositByProxy(account, daoMine.xdvdPid(), xdvdAmount);
+        } else {
+            _deposit(account, account, _amount, false);
+        }
     }
 
     /**
      * @dev This function will be called from DAOmine. The msg.sender is DAOmine.
      */
-    function depositByProxy(address _user, uint256 _amount) external onlyContract {
-        require(_user != address(0), "Invalid user address");
-        _deposit(msg.sender, _user, _amount);
+    function depositByProxy(address _account, uint256 _amount) external onlyContract {
+        require(_account != address(0), "Invalid user address");
+        _deposit(msg.sender, _account, _amount, false);
     }
 
-    function _deposit(address _proxy, address _user, uint256 _amount) internal {
+    function _deposit(address _proxy, address _account, uint256 _amount, bool _autoStake) internal {
         // Gets the amount of DVD locked in the contract
         uint256 totalDVD = dvd.balanceOf(address(this));
         // Gets the amount of xDVD in existence
         uint256 totalShares = totalSupply();
         uint256 what;
-        // If no xDVD exists, mint it 1:1 to the amount put in
+        address xdvdTo = _autoStake ? address(this) : _proxy;
+
         if (totalShares == 0) {
+            // If no xDVD exists, mint it 1:1 to the amount put in
             what = _amount;
-            _mint(_proxy, _amount);
+            _mint(xdvdTo, _amount);
         }
-        // Calculate and mint the amount of xDVD the DVD is worth. The ratio will change overtime
         else {
+            // Calculate and mint the amount of xDVD the DVD is worth. The ratio will change overtime
             what = _amount.mul(totalShares).div(totalDVD);
-            _mint(_proxy, what);
+            _mint(xdvdTo, what);
         }
+
         // Lock the DVD in the contract
         dvd.safeTransferFrom(_proxy, address(this), _amount);
 
-        user[_user].amountDeposited = user[_user].amountDeposited.add(_amount);
-        _updateSnapshot(_user, user[_user].amountDeposited);
+        user[_account].amountDeposited = user[_account].amountDeposited.add(_amount);
+        _updateSnapshot(_account, user[_account].amountDeposited);
 
-        emit Deposit(_user, _amount, what);
+        emit Deposit(_account, _amount, what);
     }
 
     // Claim back your DVDs. Unclocks the staked + gained DVD and burns xDVD
@@ -125,6 +146,19 @@ contract xDVD is ERC20Upgradeable {
         require(_tierAmounts.length < 10, "Tier range is from 0 to 10");
         tierAmounts = _tierAmounts; 
         emit TierAmount(tierAmounts);
+    }
+
+    function setDAOmine(address _daoMine) external onlyOwner {
+        if (address(daoMine) != address(0)) {
+            approve(address(daoMine), 0);
+        }
+
+        daoMine = IDAOmine(_daoMine);
+        emit SetDAOmine(address(daoMine));
+
+        if (address(daoMine) != address(0)) {
+            approve(address(daoMine), type(uint256).max);
+        }
     }
 
     function _calculateTier(uint256 _depositedAmount) internal view returns (uint8) {
@@ -266,5 +300,5 @@ contract xDVD is ERC20Upgradeable {
         _owner = newOwner;
     }
 
-    uint256[45] private __gap;
+    uint256[44] private __gap;
 }
