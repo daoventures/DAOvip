@@ -290,9 +290,10 @@ contract xDVD is ERC20Upgradeable {
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
+     *      Can only be called by the current owner.
+     *      It's named to changeOwner because EIP173Proxy already has transferOwnership() method
      */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
+    function changeOwner(address newOwner) public virtual onlyOwner {
         _transferOwnership(newOwner);
     }
 
