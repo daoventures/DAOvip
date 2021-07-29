@@ -18,7 +18,7 @@ module.exports = async ({ deployments }) => {
   const owner = await ethers.getSigner(network_.xDVD.owner);
   const implArtifact = await deployments.getArtifact("xDVD");
   const xdvd = new ethers.Contract(network_.xDVD.tokenAddress, implArtifact.abi, deployer);
-  await xdvd.connect(proxyAdmin).initOwner(owner.address);
+  await xdvd.connect(owner).initOwner(owner.address);
 
   await xdvd.connect(owner).setTierAmount([
     "1000000000000000000000", // 1K

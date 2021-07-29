@@ -8,4 +8,4 @@ module.exports = async () => {
   });
 };
 
-module.exports.tags = ["mainnet_xDVD_v2_verify"];
+module.exports.tags = ["kovan_xDVD_v2_verify"];
