@@ -14,5 +14,5 @@ interface IDAOmine {
     /**
      * @dev Returns the pid of xDVD pool in DAOmine.
      */
-    function xdvdPid() external returns(uint256);
+    function xdvdPid() external view returns(uint256);
 }

@@ -36,7 +36,7 @@ contract xDVD is ERC20Upgradeable {
     address private _owner;
     mapping (address => TierSnapshots) private _accountTierSnapshots;
 
-    IDAOmine daoMine;
+    IDAOmine public daoMine;
 
     event Deposit(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
     event Withdraw(address indexed user, uint256 DVDAmount, uint256 xDVDAmount);
