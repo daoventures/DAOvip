@@ -183,11 +183,18 @@ contract xDVD is ERC20Upgradeable {
      * @dev Retrieves the tier of `_account` at the `_blockNumber`.
      */
     function tierAt(address _account, uint256 _blockNumber) public view returns (uint8, uint256, uint256) {
-        (bool snapshotted, uint8 tier, uint256 startBlock, uint256 endBlock) = _tierAt(_blockNumber, _accountTierSnapshots[_account]);
+        TierSnapshots storage snapshots = _accountTierSnapshots[_account];
+        (bool snapshotted, uint8 tier, uint256 startBlock, uint256 endBlock) = _tierAt(_blockNumber, snapshots);
         if (snapshotted == false) {
-            tier = _calculateTier(user[_account].amountDeposited);
-            startBlock = 0;
-            endBlock = block.number;
+            if (snapshots.blockNumbers.length == 0) {
+                tier = _calculateTier(user[_account].amountDeposited);
+                startBlock = 0;
+                endBlock = block.number;
+            } else {
+                tier = 0;
+                startBlock = 0;
+                endBlock = snapshots.blockNumbers[0].sub(1);
+            }
         }
         return (tier, startBlock, endBlock);
     }

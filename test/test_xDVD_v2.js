@@ -10,8 +10,7 @@ const { assert, expect } = require("chai");
 const ERC20_ABI = require("../node_modules/@openzeppelin/contracts/build/contracts/ERC20.json").abi;
 const { mainnet: network_ } = require("../parameters");
 
-const MAX_INT = ethers.constants.MaxUint256;
-const ZERO = ethers.constants.Zero;
+const { advanceBlocks, blockNumber, UInt256Max } = require('./utils/Ethereum');
 
 describe("xDVD v2", async () => {
 
@@ -78,14 +77,14 @@ describe("xDVD v2", async () => {
       console.log("🚀 | 4. | balanceAfter", balanceAfter.toString());
       expect(balanceAfter.sub(balanceBefore)).to.equal(withdrawAmount);
       balanceXDVD = await xdvd.balanceOf(user.address);
-      expect(balanceXDVD).to.equal(ZERO);
+      expect(balanceXDVD).to.equal('0');
 
       [_, depositedAmount] = await xdvd.getTier(user.address);
       console.log(
         "🚀 | 4. | depositedAmount",
         ethers.utils.formatEther(depositedAmount)
       );
-      expect(depositedAmount).to.equal(ZERO);
+      expect(depositedAmount).to.equal('0');
     });
   });
 
@@ -94,6 +93,9 @@ describe("xDVD v2", async () => {
       let balanceBefore,
         balanceXDVD,
         currentTier,
+        tier,
+        startBlock,
+        endBlock,
         depositedAmount,
         depositAmount,
         withdrawAmount;
@@ -103,7 +105,7 @@ describe("xDVD v2", async () => {
 
       balanceXDVD = await xdvd.balanceOf(user.address);
       console.log("🚀 | 5. | balanceXDVD", balanceXDVD.toString());
-      expect(balanceXDVD).to.equal(ZERO);
+      expect(balanceXDVD).to.equal('0');
 
       // Deposited amount = 0 => Tier 0
       [currentTier, depositedAmount] = await xdvd.getTier(user.address);
@@ -111,16 +113,28 @@ describe("xDVD v2", async () => {
       console.log("🚀 | 5. | depositedAmount", ethers.utils.formatEther(depositedAmount));
       expect(currentTier.toString()).to.equal("0");
 
-      await dvd.connect(user).increaseAllowance(xdvd.address, MAX_INT);
+      await dvd.connect(user).increaseAllowance(xdvd.address, UInt256Max());
 
       // Deposited amount = 999 => Tier 1
       depositAmount = ethers.utils.parseEther("999.0");
       console.log("🚀 | 5. | depositAmount", depositAmount.toString());
+      const bn0 = await blockNumber()
       await xdvd.connect(user).deposit(depositAmount, false);
       [currentTier, depositedAmount] = await xdvd.getTier(user.address);
       console.log("🚀 | 5. | currentTier", currentTier.toString());
       console.log("🚀 | 5. | depositedAmount", ethers.utils.formatEther(depositedAmount));
       expect(currentTier.toString()).to.equal("1");
+
+      await advanceBlocks(10);
+      [tier, startBlock, endBlock] = await xdvd.tierAt(user.address, 0);
+      expect(tier).equal(0);
+      expect(startBlock).equal(0);
+      expect(endBlock).lt(bn0);
+
+      [tier, startBlock, endBlock] = await xdvd.tierAt(user.address, bn0+5);
+      expect(tier).to.equal(1);
+      expect(startBlock).to.equal(bn0+1);
+      expect(endBlock).to.equal(await blockNumber());
 
       // Deposited amount = 2000 => Tier 2
       depositAmount = ethers.utils.parseEther("1001.0");
