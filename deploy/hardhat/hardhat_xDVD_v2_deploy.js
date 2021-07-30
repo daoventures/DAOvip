@@ -15,7 +15,7 @@ module.exports = async ({ deployments }) => {
   const xdvdProxy = new ethers.Contract(network_.xDVD.tokenAddress, EIP173Proxy_ABI, deployer);
   await xdvdProxy.connect(proxyAdmin).upgradeTo(impl.address);
 
-  const owner = await ethers.getSigner(network_.xDVD.owner);
+  const owner = await ethers.getSigner(network_.xDVD.ownerAddress);
   const implArtifact = await deployments.getArtifact("xDVD");
   const xdvd = new ethers.Contract(network_.xDVD.tokenAddress, implArtifact.abi, deployer);
   await xdvd.connect(owner).initOwner(owner.address);

@@ -28,7 +28,7 @@ contract xDVD is ERC20Upgradeable {
     IERC20Upgradeable public dvd;
 
     uint256[] public tierAmounts;
-    mapping(address => User) user;
+    mapping(address => User) private user;
 
     //
     // v2 variables
@@ -72,7 +72,7 @@ contract xDVD is ERC20Upgradeable {
     function deposit(uint256 _amount, bool _autoStake) external onlyEOA {
         address account = msg.sender;
 
-        if (_autoStake && address(daoMine) == address(0)) {
+        if (_autoStake && address(daoMine) != address(0)) {
             uint256 xdvdBalance = balanceOf(address(this));
             _deposit(account, account, _amount, true);
             uint256 xdvdAmount = balanceOf(address(this)).sub(xdvdBalance);
@@ -149,15 +149,16 @@ contract xDVD is ERC20Upgradeable {
     }
 
     function setDAOmine(address _daoMine) external onlyOwner {
+        require(address(daoMine) != _daoMine, "This address is already set as DAOmine");
         if (address(daoMine) != address(0)) {
-            approve(address(daoMine), 0);
+            _approve(address(this), address(daoMine), 0);
         }
 
         daoMine = IDAOmine(_daoMine);
         emit SetDAOmine(address(daoMine));
 
         if (address(daoMine) != address(0)) {
-            approve(address(daoMine), type(uint256).max);
+            _approve(address(this), address(daoMine), type(uint256).max);
         }
     }
 
