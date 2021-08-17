@@ -101,4 +101,5 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         emit DistDVD(msg.sender, dvdAmount);
     }
 
+    uint256[42] private __gap;
 }
