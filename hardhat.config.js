@@ -52,6 +52,6 @@ const mainnetBlockNumber = 12910300;
     enabled: true
   },
   mocha: {
-    timeout: 50000
+    timeout: 100000
   },
 };

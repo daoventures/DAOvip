@@ -71,6 +71,7 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
     receive() external payable {}
 
     function setWallet(address _wallet) external onlyOwner {
+        require(_wallet != address(0), "Wallet address is invalid");
         wallet = _wallet;
         emit SetWallet(_wallet);
     }
@@ -80,7 +81,7 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         emit SetAmount(maxAmount);
     }
 
-    function getDistributableAmount() public returns(uint256) {
+    function getDistributableAmount() public view returns(uint256) {
         uint256 lastTime = (block.timestamp < endTime) ? block.timestamp : endTime;
         uint256 amountAllowed = SUPPLY.mul(lastTime.sub(startTime)).div(PERIOD);
         return amountAllowed.sub(amountDistributed);
@@ -95,8 +96,8 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
 
         amountDistributed = amountDistributed.add(dvdAmount);
         uint256 shareForXDVD = dvdAmount.div(3);
-        dvd.safeTransfer(xdvd, shareForXDVD);
-        dvd.safeTransfer(lpDvdEth, dvdAmount.sub(shareForXDVD));
+        dvd.safeTransferFrom(wallet, xdvd, shareForXDVD);
+        dvd.safeTransferFrom(wallet, lpDvdEth, dvdAmount.sub(shareForXDVD));
 
         emit DistDVD(msg.sender, dvdAmount);
     }

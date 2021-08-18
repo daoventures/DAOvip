@@ -19,6 +19,7 @@
     "hardhat-gas-reporter": "^1.0.4"
   },
   "dependencies": {
+    "bignumber.js": "^9.0.1",
     "dotenv": "^10.0.0"
   }
 }

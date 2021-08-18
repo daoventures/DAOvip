@@ -6,9 +6,7 @@ module.exports = async ({ deployments }) => {
   const [deployer] = await ethers.getSigners();
 
   console.log("Now deploying DVDDistBotUpgradeable on Mainnet...");
-
   const impl = await deploy("DVDDistBotUpgradeable", {
-    contract: "DVDDistBotUpgradeable",
     from: deployer.address,
   });
   console.log("DVDDistBotUpgradeable impl address: ", impl.address);

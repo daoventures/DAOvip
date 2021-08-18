@@ -3,7 +3,7 @@ pragma solidity 0.7.6;
 
 import "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol";
 
-contract DVDDistBotUpgradeable  is TransparentUpgradeableProxy {
+contract DVDDistBotUpgradeableProxy is TransparentUpgradeableProxy {
 
     constructor(address logic, address admin, bytes memory data) TransparentUpgradeableProxy(logic, admin, data) public {
     }
