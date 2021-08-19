@@ -25,8 +25,8 @@ describe("DVDDistBot", async () => {
   const PERIOD = 180*24*3600;
 
   let owner, wallet;
-  let dist, dvd;
-  let xdvdAddress, lpDvdEthAddress;
+  let dist, dvd, lpDvdEth;
+  let xdvdAddress;
   let startTime, endTime;
 
   before(async () => {
@@ -40,9 +40,11 @@ describe("DVDDistBot", async () => {
 
     dvd = new ethers.Contract(network_.DVD.tokenAddress, ERC20_ABI, a1);
 
+    const lpArtifact = await deployments.getArtifact("IUniswapV2Pair");
+    lpDvdEth = new ethers.Contract(await dist.lpDvdEth(), lpArtifact.abi, a1);
+
     wallet = await ethers.getSigner(network_.Global.treasuryWalletAddr);
     xdvdAddress = network_.xDVD.tokenAddress;
-    lpDvdEthAddress = await dist.lpDvdEth();
     startTime = await dist.startTime();
     endTime = await dist.endTime();
 
@@ -58,9 +60,13 @@ describe("DVDDistBot", async () => {
         assert.equal(await dist.xdvd(), xdvdAddress, "The xDVD address disagreement");
         assert.notEqual(await dist.lpDvdEth(), AddressZero(), "lpDvdEth is invalid");
         assert.equal(await dist.wallet(), network_.Global.treasuryWalletAddr, "The wallet address is invalid");
-        assert.equal(await dist.maxAmount(), ethers.utils.parseEther("500").toString(), "The maxAmount is invalid");
+        assert.equal(await dist.maxAmount(), ethers.utils.parseEther("100000").toString(), "The maxAmount is invalid");
         expect(parseInt(startTime)).greaterThan(0);
         expect(parseInt(endTime)).equal(parseInt(startTime) + PERIOD);
+
+        const token0 = await lpDvdEth.token0();
+        const token1 = await lpDvdEth.token1();
+        expect(token0 == dvd.address || token1 == dvd.address).equal(true);
     });
     
     it("Should be set correctly", async () => {
@@ -72,7 +78,7 @@ describe("DVDDistBot", async () => {
       await expectRevert(dist.setAmount(ethers.utils.parseEther("1000").toString()), "Ownable: caller is not the owner");
       await dist.connect(owner).setAmount(ethers.utils.parseEther("1000").toString());
       expect(await dist.maxAmount()).equal(ethers.utils.parseEther("1000").toString());
-      await dist.connect(owner).setAmount(ethers.utils.parseEther("500").toString());
+      await dist.connect(owner).setAmount(ethers.utils.parseEther("100000").toString());
     });
   });
 
@@ -84,19 +90,30 @@ describe("DVDDistBot", async () => {
       expect(amount).equal(SUPPLY.div(6).integerValue().toString());
 
       const xdvdOldBalance = await dvd.balanceOf(xdvdAddress);
-      const lpOldBalance = await dvd.balanceOf(lpDvdEthAddress);
+      const lpOldBalance = await dvd.balanceOf(lpDvdEth.address);
+      const [reserve0, reserve1, ]  = await lpDvdEth.getReserves();
+
       await dist.distDVD();
-      expect(await dist.amountDistributed()).equal(ethers.utils.parseEther("500"));
+      expect(await dist.amountDistributed()).equal(ethers.utils.parseEther("100000"));
       const xdvdReceived = (await dvd.balanceOf(xdvdAddress)).sub(xdvdOldBalance);
-      const lpReceived = (await dvd.balanceOf(lpDvdEthAddress)).sub(lpOldBalance);
-      expect(xdvdReceived).equal(ethers.utils.parseEther("500").div(3));
-      expect(lpReceived).equal(ethers.utils.parseEther("500").sub(xdvdReceived));
+      const lpReceived = (await dvd.balanceOf(lpDvdEth.address)).sub(lpOldBalance);
+      expect(xdvdReceived).equal(ethers.utils.parseEther("100000").div(3));
+      expect(lpReceived).equal(ethers.utils.parseEther("100000").sub(xdvdReceived));
+
+      const [r0, r1, ]  = await lpDvdEth.getReserves();
+      var dvdChange;
+      if ((await lpDvdEth.token0()) == dvd.address) {
+        dvdChange = r0.sub(reserve0);
+      } else {
+        dvdChange = r1.sub(reserve1);
+      }
+      expect(lpReceived).equal(dvdChange);
     });
 
     it('end of distribute', async () => {
       await dist.connect(owner).setAmount(SUPPLY.multipliedBy(2).toString());
       await increaseTime(parseInt(startTime) + PERIOD*2 - (await blockTimestamp()));
-      expect(await dist.getDistributableAmount()).equal(SUPPLY.minus(ethers.utils.parseEther("500").toString()).toString());
+      expect(await dist.getDistributableAmount()).equal(SUPPLY.minus(ethers.utils.parseEther("100000").toString()).toString());
       await dist.distDVD();
       expect(await dist.amountDistributed()).equal(SUPPLY.integerValue().toString());
     });

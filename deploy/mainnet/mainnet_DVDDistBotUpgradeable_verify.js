@@ -29,7 +29,7 @@ module.exports = async ({ deployments }) => {
         network_.Global.proxyAdmin,
         data,
       ],
-      contract: "contracts/DAOmine/DVDDistBotUpgradeableProxy.sol:DVDDistBotUpgradeableProxy",
+      contract: "contracts/DVDDistBot/DVDDistBotUpgradeableProxy.sol:DVDDistBotUpgradeableProxy",
     });
   } catch (e) {
   }

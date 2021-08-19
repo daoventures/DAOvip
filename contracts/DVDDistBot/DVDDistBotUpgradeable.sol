@@ -10,6 +10,7 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 
 import "../interfaces/IUniswapV2Factory.sol";
 import "../interfaces/IUniswapV2Router02.sol";
+import "../interfaces/IUniswapV2Pair.sol";
 
 contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -62,7 +63,7 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         require(lpDvdEth != address(0), "LP address is invalid");
 
         wallet = _wallet;
-        maxAmount = 500e18;
+        maxAmount = 100000e18;
 
         startTime = block.timestamp;
         endTime = startTime.add(PERIOD);
@@ -98,6 +99,7 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 shareForXDVD = dvdAmount.div(3);
         dvd.safeTransferFrom(wallet, xdvd, shareForXDVD);
         dvd.safeTransferFrom(wallet, lpDvdEth, dvdAmount.sub(shareForXDVD));
+        IUniswapV2Pair(lpDvdEth).sync();
 
         emit DistDVD(msg.sender, dvdAmount);
     }
