@@ -17,23 +17,29 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
     using AddressUpgradeable for address;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    uint256 public constant SUPPLY = 5500000e18; // 5.5M DVD
-    uint256 public constant PERIOD = 180 days; // 6 months
-
+    address public wallet;
     IERC20Upgradeable public dvd; 
     address public xdvd; 
     address public lpDvdEth;
 
-    address public wallet;
-    uint256 public maxAmount;
-
+    uint256 public period;
     uint256 public startTime;
     uint256 public endTime;
-    uint256 public amountDistributed;
 
-    event DistDVD(address indexed user, uint256 dvdAmount);
+    uint256 public supply;
+    uint256 public amountDistributed;
+    uint256 public maxAmount;
+
+    uint256 public constant DENOMINATOR = 10000;
+    uint256 public percentOfShareForXDVD; // If the value 3300, it means 33%.
+    uint256 public percentOfShareForLP;
+
+    event SetPeriod(uint256 newPeriod);
+    event SetSupply(uint256 newSupply);
+    event SetPercentOfShare(uint256 newPercentOfShareForXDVD, uint256 newPercentOfShareForLP);
+    event SetMaxAmount(uint256 newMaxAmount);
     event SetWallet(address indexed newWallet);
-    event SetAmount(uint256 maxAmount);
+    event DistDVD(address indexed user, uint256 dvdAmount);
 
     /// @dev Require that the caller must be an EOA account to avoid flash loans
     modifier onlyEOA() {
@@ -55,6 +61,7 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         __Ownable_init();
         __ReentrancyGuard_init();
 
+        wallet = _wallet;
         dvd = _dvd;
         xdvd = _xdvd;
 
@@ -62,30 +69,58 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         lpDvdEth = uniFactory.getPair(address(dvd), address(_router.WETH()));
         require(lpDvdEth != address(0), "LP address is invalid");
 
-        wallet = _wallet;
+        period = 180 days; // 6 months
+        startTime = block.timestamp;
+        endTime = startTime.add(period);
+
+        supply = 5500000e18; // 5.5M DVD
         maxAmount = 100000e18;
 
-        startTime = block.timestamp;
-        endTime = startTime.add(PERIOD);
+        percentOfShareForXDVD = 3333; // 33.33%
+        percentOfShareForLP = DENOMINATOR.sub(percentOfShareForXDVD);
     }
 
     receive() external payable {}
 
+    /**
+     * @dev Set the period.
+     *
+     * @param _period     The distribution period in seconds
+     */
+    function setPeriod(uint256 _period) external onlyOwner {
+        require(block.timestamp <= startTime.add(_period), "The calculated endTime should be greater than current time");
+        period = _period;
+        emit SetPeriod(period);
+    }
+
+    function setSupply(uint256 _supply) external onlyOwner {
+        require(amountDistributed <= _supply, "New supply must be equal or greater than amountDistributed");
+        supply = _supply;
+        emit SetSupply(supply);
+    }
+
+    function setPercentOfShare(uint256 _percentOfShareForXDVD, uint256 _percentOfShareForLP) external onlyOwner {
+        require(_percentOfShareForXDVD.add(_percentOfShareForLP) <= DENOMINATOR, "The value should be equal or less than 10000");
+        percentOfShareForXDVD = _percentOfShareForXDVD;
+        percentOfShareForLP = _percentOfShareForLP;
+        emit SetPercentOfShare(percentOfShareForXDVD, percentOfShareForLP);
+    }
+
+    function setMaxAmount(uint256 _maxAmount) external onlyOwner {
+        maxAmount = _maxAmount;
+        emit SetMaxAmount(maxAmount);
+    }
+
     function setWallet(address _wallet) external onlyOwner {
         require(_wallet != address(0), "Wallet address is invalid");
         wallet = _wallet;
-        emit SetWallet(_wallet);
-    }
-
-    function setAmount(uint256 _maxAmount) external onlyOwner {
-        maxAmount = _maxAmount;
-        emit SetAmount(maxAmount);
+        emit SetWallet(wallet);
     }
 
     function getDistributableAmount() public view returns(uint256) {
         uint256 lastTime = (block.timestamp < endTime) ? block.timestamp : endTime;
-        uint256 amountAllowed = SUPPLY.mul(lastTime.sub(startTime)).div(PERIOD);
-        return amountAllowed.sub(amountDistributed);
+        uint256 amountAllowed = supply.mul(lastTime.sub(startTime)).div(period);
+        return (amountAllowed <= amountDistributed) ? 0 : amountAllowed.sub(amountDistributed);
     }
 
     function distDVD() external onlyEOA nonReentrant {
@@ -96,13 +131,12 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         }
 
         amountDistributed = amountDistributed.add(dvdAmount);
-        uint256 shareForXDVD = dvdAmount.div(3);
-        dvd.safeTransferFrom(wallet, xdvd, shareForXDVD);
-        dvd.safeTransferFrom(wallet, lpDvdEth, dvdAmount.sub(shareForXDVD));
+        dvd.safeTransferFrom(wallet, xdvd, dvdAmount.mul(percentOfShareForXDVD).div(DENOMINATOR));
+        dvd.safeTransferFrom(wallet, lpDvdEth, dvdAmount.mul(percentOfShareForLP).div(DENOMINATOR));
         IUniswapV2Pair(lpDvdEth).sync();
 
         emit DistDVD(msg.sender, dvdAmount);
     }
 
-    uint256[42] private __gap;
+    uint256[38] private __gap;
 }
