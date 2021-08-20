@@ -117,14 +117,28 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         emit SetWallet(wallet);
     }
 
-    function getDistributableAmount() public view returns(uint256) {
+    function getDistributableAmount() public view returns(
+        uint256 distributable,
+        uint256 curAmountOnXDVD,
+        uint256 rewardForXDVD,
+        uint256 curAmountOnUniLP,
+        uint256 rewardForUniLP
+    ) {
+        distributable = _getDistributableAmount();
+        curAmountOnXDVD = dvd.balanceOf(xdvd);
+        rewardForXDVD = distributable.mul(percentOfShareForXDVD).div(DENOMINATOR);
+        curAmountOnUniLP = dvd.balanceOf(lpDvdEth);
+        rewardForUniLP = distributable.mul(percentOfShareForLP).div(DENOMINATOR);
+    }
+
+    function _getDistributableAmount() internal view returns(uint256) {
         uint256 lastTime = (block.timestamp < endTime) ? block.timestamp : endTime;
         uint256 amountAllowed = supply.mul(lastTime.sub(startTime)).div(period);
         return (amountAllowed <= amountDistributed) ? 0 : amountAllowed.sub(amountDistributed);
     }
 
     function distDVD() external onlyEOA nonReentrant {
-        uint256 dvdAmount = getDistributableAmount();
+        uint256 dvdAmount = _getDistributableAmount();
         require(0 < dvdAmount, "Nothing to be distributable");
         if (maxAmount < dvdAmount) {
             dvdAmount = maxAmount;

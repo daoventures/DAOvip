@@ -110,17 +110,19 @@ describe("DVDDistBot", async () => {
     it('simple distribute with correct percent', async () => {
       var curTime = await blockTimestamp();
       await increaseTime(parseInt(startTime) + PERIOD/6 - curTime);
-      var amount = await dist.getDistributableAmount();
-      expect(amount).equal(SUPPLY.div(6).integerValue().toString());
 
-      const xdvdOldBalance = await dvd.balanceOf(xdvdAddress);
-      const lpOldBalance = await dvd.balanceOf(lpDvdEth.address);
+      var [distributable, curAmountOnXDVD, rewardForXDVD, curAmountOnUniLP, rewardForUniLP] = await dist.getDistributableAmount();
+      expect(distributable).equal(SUPPLY.div(6).integerValue().toString());
+      expect(await dvd.balanceOf(xdvdAddress)).equal(curAmountOnXDVD);
+      expect(await dvd.balanceOf(lpDvdEth.address)).equal(curAmountOnUniLP);
+      expect(rewardForXDVD).equal(distributable.mul(percentOfShareForXDVD).div(DENOMINATOR));
+      expect(rewardForUniLP).equal(distributable.mul(DENOMINATOR-percentOfShareForXDVD).div(DENOMINATOR));
       const [reserve0, reserve1, ]  = await lpDvdEth.getReserves();
 
       await dist.distDVD();
       expect(await dist.amountDistributed()).equal(MAX_AMOUNT);
-      const xdvdReceived = (await dvd.balanceOf(xdvdAddress)).sub(xdvdOldBalance);
-      const lpReceived = (await dvd.balanceOf(lpDvdEth.address)).sub(lpOldBalance);
+      const xdvdReceived = (await dvd.balanceOf(xdvdAddress)).sub(curAmountOnXDVD);
+      const lpReceived = (await dvd.balanceOf(lpDvdEth.address)).sub(curAmountOnUniLP);
       expect(xdvdReceived).equal(MAX_AMOUNT.mul(percentOfShareForXDVD).div(DENOMINATOR));
       expect(lpReceived).equal(MAX_AMOUNT.mul(DENOMINATOR-percentOfShareForXDVD).div(DENOMINATOR));
 
@@ -138,7 +140,8 @@ describe("DVDDistBot", async () => {
       await dist.connect(owner).setSupply(MAX_AMOUNT);
       expect(await dist.supply()).equal(MAX_AMOUNT);
       await increaseTime(3600);
-      expect(await dist.getDistributableAmount()).equal(0);
+      [distributable, , , , ] = await dist.getDistributableAmount();
+      expect(distributable).equal(0);
       await dist.connect(owner).setSupply(SUPPLY.toString());
 
       // Check if setPeriod works correctly
@@ -148,7 +151,8 @@ describe("DVDDistBot", async () => {
     it('end of distribute', async () => {
       await dist.connect(owner).setMaxAmount(SUPPLY.multipliedBy(2).toString());
       await increaseTime(parseInt(startTime) + PERIOD*2 - (await blockTimestamp()));
-      expect(await dist.getDistributableAmount()).equal(SUPPLY.minus(MAX_AMOUNT.toString()).toString());
+      var [distributable, , , , ] = await dist.getDistributableAmount();
+      expect(distributable).equal(SUPPLY.minus(MAX_AMOUNT.toString()).toString());
       await dist.distDVD();
       expect(await dist.amountDistributed()).equal(SUPPLY.integerValue().toString());
     });
