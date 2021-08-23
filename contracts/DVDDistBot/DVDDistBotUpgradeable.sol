@@ -69,8 +69,8 @@ contract DVDDistBotUpgradeable is OwnableUpgradeable, ReentrancyGuardUpgradeable
         lpDvdEth = uniFactory.getPair(address(dvd), address(_router.WETH()));
         require(lpDvdEth != address(0), "LP address is invalid");
 
-        period = 180 days; // 6 months
-        startTime = block.timestamp;
+        period = 720 days; // 24 months
+        startTime = 1629849600;
         endTime = startTime.add(period);
 
         supply = 5500000e18; // 5.5M DVD
