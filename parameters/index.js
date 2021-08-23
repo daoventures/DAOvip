@@ -2,7 +2,7 @@ module.exports = {
   mainnet: {
     Global: {
       proxyAdmin: "0x66DF02347beAfADe5d94745F00Ec953b53FDB3a3",  // TODO: Update with correct value
-      treasuryWalletAddr: "0x59E83877bD248cBFe392dbB5A8a29959bcb48592",  // TODO: Update with correct value
+      treasuryWalletAddr: "0xE4868FB2fd1BAE0b6b6eD14811E7407Bd56f21eA",  // TODO: Update with correct value
       uniswapRouter: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
     },
     DVD: {
